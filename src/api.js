@@ -10,19 +10,20 @@
  * @property {string} content
  */
 
-/** @type {Post[]} */
-const posts = [
-  {
-    id: 'overflowbin',
-    title: 'My first post',
-    content: 'Hello!',
-  },
-  {
-    id: 'bin11788',
-    title: '나의 두번째 포스트',
-    content: 'second Hello!',
-  },
-]
+// Refatoring : .json파일의 데이터를 이용하는 걸로 변경
+// /** @type {Post[]} */
+// const posts = [
+//   {
+//     id: 'overflowbin',
+//     title: 'My first post',
+//     content: 'Hello!',
+//   },
+//   {
+//     id: 'bin11788',
+//     title: '나의 두번째 포스트',
+//     content: 'second Hello!',
+//   },
+// ]
 
 /**
  * Post
@@ -46,6 +47,31 @@ const posts = [
  * @property {(mathces: string[], body: Object.<string, *> | undefined) => Promise<APIResponse>} callback
  */
 
+// .json 파일로 되어있는 임시 데이터를 가져오기
+const fs = require('fs')
+const DB_JSON_FILENAME = 'database.json'
+
+/** @returns {Promise<Post[]>} */
+async function getPosts() {
+  const json = await fs.promises.readFile(DB_JSON_FILENAME, 'utf-8')
+  return JSON.parse(json).posts
+}
+
+/**
+ * @param {Post[]} posts
+ */
+async function savePosts(posts) {
+  const content = {
+    posts,
+  }
+
+  return await fs.promises.writeFile(
+    DB_JSON_FILENAME,
+    JSON.stringify(content),
+    'utf-8'
+  )
+}
+
 /** @type {Route[]} */
 const routes = [
   {
@@ -53,7 +79,7 @@ const routes = [
     method: 'GET',
     callback: async () => ({
       statusCode: 200,
-      body: posts,
+      body: await getPosts(),
     }),
   },
   {
@@ -68,6 +94,7 @@ const routes = [
         }
       }
 
+      const posts = await getPosts()
       const post = posts.find((_post) => _post.id === postId)
 
       if (!post) {
@@ -103,7 +130,9 @@ const routes = [
         content: body.content,
       }
 
+      const posts = await getPosts()
       posts.push(newPost)
+      savePosts(posts)
 
       return {
         statusCode: 200,
