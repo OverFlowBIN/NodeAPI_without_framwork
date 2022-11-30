@@ -3,6 +3,9 @@
     "debug": "node src/main.js",
     "server": "nodemon src/main.js"
   },
+  "engines": {
+    "node": "16.16.0"
+  },
   "devDependencies": {
     "@types/node": "^18.11.9",
     "eslint": "^8.28.0",
